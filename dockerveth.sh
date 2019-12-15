@@ -183,7 +183,5 @@ set -e
 container_data=$(get_container_data "$@")
 dockerveth__addrs="$(ip address show)"
 table=$(IFS="$NL"; make_table $container_data)
-if [ -t 1 ]; then
-    printf "CONTAINER ID\tVETH       \tNAMES\n"
-fi
+printf "CONTAINER ID\tVETH\tNAMES\n"
 printf "${table}\n"
