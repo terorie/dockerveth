@@ -53,15 +53,6 @@ get_container_data () {
     docker ps --format '{{.ID}} {{.Names}}' "$@"
 }
 
-#get_veth () {
-#    # Get the host veth interface attached to a container.
-#    # Input: docker container ID; also needs $dockerveth__addrs
-#    # Output: the veth name, like "veth6638cfa"
-#    c_if_index=$(get_container_if_index "$1")
-#    a="${dockerveth__addrs%%@if${c_if_index}:*}"
-#    b="${a##*${NL}}"
-#    printf "${b#* }"
-#}
 get_veth () {
     # Get the host veth interface attached to a container.
     # Input: docker container ID; also needs $dockerveth__addrs
@@ -80,16 +71,6 @@ get_veth () {
         fi
     done
     printf "${veth}"
-}
-
-get_container_if_index () {
-    # Get the index number of a docker container's first veth interface (typically eth0)
-    # Input: the container ID
-    # Output: The index number, like "42"
-    c_pid=$(get_pid "$1")
-    ip_netns_export "$c_pid"
-    ils=$(ip netns exec "ns-${c_pid}" ip link show type veth)
-    printf "${ils%%:*}"
 }
 
 get_container_if_indices () {
