@@ -124,8 +124,9 @@ make_row () {
     # Output: A row of data, like "1e8656e195ba	veth1ce04be	thirsty_meitner"
     id="${1}"
     name="${2}"
+    netns=$(get_netns "$id")
     veth=$(get_veth "$id")
-    printf "${id}\t${veth}\t${name}"
+    printf "${id}\t${veth}\t${netns}\t${name}"
 }
 
 make_table () {
@@ -164,5 +165,5 @@ set -e
 container_data=$(get_container_data "$@")
 dockerveth__addrs="$(ip address show)"
 table=$(IFS="$NL"; make_table $container_data)
-printf "CONTAINER ID\tVETH\tNAMES\n"
+printf "CONTAINER ID\tVETH\tNETNS\tNAMES\n"
 printf "${table}\n"
