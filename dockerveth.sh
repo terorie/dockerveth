@@ -96,9 +96,8 @@ get_container_if_indices () {
     # Get the index number of a docker container's veth interfaces (typically eth0)
     # Input: the container ID
     # Output: The index number(s), like "42\n44\n"
-    c_pid=$(get_pid "$1")
-    ip_netns_export "$c_pid"
-    ils=$(ip netns exec "ns-${c_pid}" ip link show type veth)
+    netns=$(get_netns "$1")
+    ils=$(ip netns exec $netns ip link show type veth)
     indices=""
     for line in $ils; do
         m1="${line%%:*}"
@@ -110,15 +109,23 @@ get_container_if_indices () {
     printf "${indices}"
 }
 
-ip_netns_export () {
+get_netns () {
     # Make a docker container's networking info available to `ip netns`
     # Input: the container's PID
-    # Output: None (besides return code), but performs the set-up so that `ip netns` commands
-    # can access this container's namespace.
+    # Output: namespace ID
+    # If the Docker networking namespaces are not already mounted,
+    # performs the set-up so that `ip netns` commands can access
+    # the target container's namespace.
     if [ ! -d /var/run/netns ]; then
         mkdir -p /var/run/netns
     fi
-    ln  -sf "/proc/${1}/ns/net" "/var/run/netns/ns-${1}"
+    docker_netns_path=$(docker inspect --format='{{.NetworkSettings.SandboxKey}}' "${1}")
+    netns_id=$(basename ${docker_netns_path})
+    target_netns_path="/var/run/netns/${netns_id}"
+    if [ ! -f "${target_netns_path}" ]; then
+        ln -sf "${docker_netns_path}" "${target_netns_path}"
+    fi
+    printf "${netns_id}"
 }
 
 get_pid () {
